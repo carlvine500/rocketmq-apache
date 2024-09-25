@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nameserver3
+spec:
+  serviceName: "nameserver"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nameserver
+  template:
+    metadata:
+      labels:
+        app: nameserver
+    spec:
+#      affinity:
+#        podAntiAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            - labelSelector:
+#                matchExpressions:
+#                  - key: "app"
+#                    operator: In
+#                    values:
+#                    - nameserver
+#              topologyKey: "kubernetes.io/hostname"
+      nodeSelector:
+        middleware.nameserver3: USER_LABEL_VALUE
+      terminationGracePeriodSeconds: 10
+      hostNetwork: true
+      containers:
+      - name: nameserver
+        image: registry.bizsaas.net/rocketmq:4.9.7
+        imagePullPolicy: IfNotPresent
+        command: ["/defaultcluster/start-ns.sh"]
+        env:
+        - name: NETWORK_INTERFACE
+          value: eth0
+        ports:
+        - containerPort: 9878
+          name: my-port

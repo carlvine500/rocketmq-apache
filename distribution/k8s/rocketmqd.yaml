@@ -1,0 +1,60 @@
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rocketmqd
+spec:
+  serviceName: "rocketmq"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocketmq
+  template:
+    metadata:
+      labels:
+        app: rocketmq
+    spec:
+      nodeSelector:
+        middleware.rocketmqd: USER_LABEL_VALUE
+      terminationGracePeriodSeconds: 10
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: rocketmq
+        image: registry.bizsaas.net/rocketmq:4.9.7
+        imagePullPolicy: IfNotPresent
+        command: ["/defaultcluster/start-d.sh"]
+        env:
+        - name: NETWORK_INTERFACE
+          value: eth0
+        readinessProbe:
+          tcpSocket:
+            port: 10940
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 4
+        livenessProbe:
+          tcpSocket:
+            port: 10940
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 4
+        ports:
+        - containerPort: 10940
+          name: my-port1
+        - containerPort: 10941
+          name: my-port2
+        - containerPort: 10942
+          name: my-port3
+        volumeMounts:
+        - name: vstore
+          mountPath: /app/store-d
+        - name: vlogs
+          mountPath: /root/logs/rocketmqlogs
+      volumes:
+        - name: vstore
+          hostPath:
+            path: /data/rocketmq/store-d
+        - name: vlogs
+          hostPath:
+            path: /var/log/rocketmq-d
