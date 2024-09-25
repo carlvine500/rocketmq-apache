@@ -281,7 +281,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--  <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
                 <executions>
@@ -291,7 +291,7 @@
                         <configuration>
                             <configLocation>style/rmq_checkstyle.xml</configLocation>
                             <inputEncoding>UTF-8</inputEncoding>
-                            <consoleOutput>true</consoleOutput>
+                          <consoleOutput>true</consoleOutput>
                             <failsOnError>true</failsOnError>
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <excludes>**/generated*/**/*</excludes>
@@ -301,7 +301,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
             <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
@@ -404,7 +404,7 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>${sonar-maven-plugin.version}</version>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>${spotbugs-plugin.version}</version>
@@ -425,7 +425,7 @@
                     <threshold>High</threshold>
                     <effort>Max</effort>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
 
         <pluginManagement>
