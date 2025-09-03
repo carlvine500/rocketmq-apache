@@ -1,4 +1,4 @@
-FROM registry.bizsaas.net/java:openjdk8-alpine-bash-cn
+FROM registry.bizsaas.net/java:openjdk17-rocky-cn-skywalking
 
 
 #MAINTAINER cal
