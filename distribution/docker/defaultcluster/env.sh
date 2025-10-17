@@ -20,3 +20,5 @@ sed -i '/brokerIP1/d' *.properties
 sed -i '/brokerIP2/d' *.properties
 sed -i "1a brokerIP1=$BROKER_IP" *.properties
 sed -i "1a brokerIP2=$BROKER_IP" *.properties
+
+unset JAVA_TOOL_OPTIONS
