@@ -29,16 +29,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Properties;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.org.slf4j.Logger;
 import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
 
+import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CIPHERS;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CLIENT_AUTHSERVER;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CLIENT_CERTPATH;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CLIENT_KEYPASSWORD;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CLIENT_KEYPATH;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_CLIENT_TRUSTCERTPATH;
+import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_PROTOCOLS;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_AUTHCLIENT;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_CERTPATH;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_KEYPASSWORD;
@@ -46,11 +49,13 @@ import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_KEYP
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_NEED_CLIENT_AUTH;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_SERVER_TRUSTCERTPATH;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_TEST_MODE_ENABLE;
+import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsCiphers;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsClientAuthServer;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsClientCertPath;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsClientKeyPassword;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsClientKeyPath;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsClientTrustCertPath;
+import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsProtocols;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsServerAuthClient;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsServerCertPath;
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.tlsServerKeyPassword;
@@ -102,16 +107,15 @@ public class TlsHelper {
             LOGGER.info("Using JDK SSL provider");
         }
 
+        SslContextBuilder sslContextBuilder = null;
         if (forClient) {
             if (tlsTestModeEnable) {
-                return SslContextBuilder
+                sslContextBuilder = SslContextBuilder
                     .forClient()
                     .sslProvider(SslProvider.JDK)
-                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
-                    .build();
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE);
             } else {
-                SslContextBuilder sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.JDK);
-
+                sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.JDK);
 
                 if (!tlsClientAuthServer) {
                     sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
@@ -121,28 +125,24 @@ public class TlsHelper {
                     }
                 }
 
-                return sslContextBuilder.keyManager(
+                sslContextBuilder = sslContextBuilder.keyManager(
                     !isNullOrEmpty(tlsClientCertPath) ? new FileInputStream(tlsClientCertPath) : null,
                     !isNullOrEmpty(tlsClientKeyPath) ? decryptionStrategy.decryptPrivateKey(tlsClientKeyPath, true) : null,
-                    !isNullOrEmpty(tlsClientKeyPassword) ? tlsClientKeyPassword : null)
-                    .build();
+                    !isNullOrEmpty(tlsClientKeyPassword) ? tlsClientKeyPassword : null);
             }
         } else {
-
             if (tlsTestModeEnable) {
                 SelfSignedCertificate selfSignedCertificate = new SelfSignedCertificate();
-                return SslContextBuilder
+                sslContextBuilder = SslContextBuilder
                     .forServer(selfSignedCertificate.certificate(), selfSignedCertificate.privateKey())
                     .sslProvider(provider)
-                    .clientAuth(ClientAuth.OPTIONAL)
-                    .build();
+                    .clientAuth(ClientAuth.OPTIONAL);
             } else {
-                SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(
+                sslContextBuilder = SslContextBuilder.forServer(
                     !isNullOrEmpty(tlsServerCertPath) ? new FileInputStream(tlsServerCertPath) : null,
                     !isNullOrEmpty(tlsServerKeyPath) ? decryptionStrategy.decryptPrivateKey(tlsServerKeyPath, false) : null,
                     !isNullOrEmpty(tlsServerKeyPassword) ? tlsServerKeyPassword : null)
                     .sslProvider(provider);
-
                 if (!tlsServerAuthClient) {
                     sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
                 } else {
@@ -150,10 +150,20 @@ public class TlsHelper {
                         sslContextBuilder.trustManager(new File(tlsServerTrustCertPath));
                     }
                 }
-
                 sslContextBuilder.clientAuth(parseClientAuthMode(tlsServerNeedClientAuth));
-                return sslContextBuilder.build();
+
             }
+        }
+        moreTlsConfig(sslContextBuilder);
+        return sslContextBuilder.build();
+    }
+
+    protected static void moreTlsConfig(SslContextBuilder sslContextBuilder) {
+        if (tlsCiphers != null) {
+            sslContextBuilder.ciphers(Arrays.asList(tlsCiphers.split(",")));
+        }
+        if (tlsProtocols != null) {
+            sslContextBuilder.protocols(tlsProtocols.split(","));
         }
     }
 
@@ -192,6 +202,9 @@ public class TlsHelper {
         tlsClientCertPath = properties.getProperty(TLS_CLIENT_CERTPATH, tlsClientCertPath);
         tlsClientAuthServer = Boolean.parseBoolean(properties.getProperty(TLS_CLIENT_AUTHSERVER, String.valueOf(tlsClientAuthServer)));
         tlsClientTrustCertPath = properties.getProperty(TLS_CLIENT_TRUSTCERTPATH, tlsClientTrustCertPath);
+
+        tlsCiphers = properties.getProperty(TLS_CIPHERS, tlsCiphers);
+        tlsProtocols = properties.getProperty(TLS_PROTOCOLS, tlsProtocols);
     }
 
     private static void logTheFinalUsedTlsConfig() {
