@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="trace">
+    <Appenders>
+        <!-- 1. 定义控制台输出，解决报错的关键 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- 2. 定义 RocketMQ 客户端日志文件 -->
+        <RollingFile name="RocketmqClientAppender"
+                     fileName="/Users/tingfeng/logs/rocketmq-client.log"
+                     filePattern="/Users/tingfeng/logs/rocketmq-client-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- RocketMQ 客户端核心日志 -->
+        <Logger name="org.apache.rocketmq" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>
+        </Logger>
+
+        <!-- 消息发送/接收详细日志 -->
+        <Logger name="org.apache.rocketmq.client" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>
+        </Logger>
+
+        <!-- 生产者日志 -->
+        <Logger name="org.apache.rocketmq.client.impl.producer" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>
+        </Logger>
+
+        <!-- 消费者日志 -->
+        <Logger name="org.apache.rocketmq.client.impl.consumer" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>
+        </Logger>
+
+        <!-- 网络通信日志 -->
+        <Logger name="org.apache.rocketmq.remoting" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>
+        </Logger>
+
+        <!-- 已存在的配置 -->
+        <Logger name="RocketmqClient" level="INFO" additivity="false">
+            <AppenderRef ref="RocketmqClientAppender"/>
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RocketmqClientAppender"/>  <!-- 已经包含了文件输出 -->
+        </Root>
+    </Loggers>
+</Configuration>

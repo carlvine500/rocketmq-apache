@@ -14,15 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.example.simple;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
-import java.nio.charset.StandardCharsets;
-
-public class Producer {
+import org.apache.rocketmq.logging.org.slf4j.Logger;
+import org.apache.rocketmq.logging.org.slf4j.LoggerFactory;
+public class ProducerLog {
+    static final Logger logger = LoggerFactory.getLogger(ProducerLog.class);
 
     public static final String PRODUCER_GROUP = "ProducerGroupName";
     public static final String DEFAULT_NAMESRVADDR = "172.33.66.117:9878";
@@ -30,14 +31,16 @@ public class Producer {
     public static final String TAG = "TagA";
 
     public static void main(String[] args) throws MQClientException, InterruptedException {
-
+        System.setProperty("rocketmq.client.logUseSlf4j", "true");
+        System.setProperty("rocketmq.client.log.loadconfig", "false");
+        logger.info("rocketmq logging start rocketmq producer");
         DefaultMQProducer producer = new DefaultMQProducer(PRODUCER_GROUP);
 
         // Uncomment the following line while debugging, namesrvAddr should be set to your local address
         producer.setNamesrvAddr(DEFAULT_NAMESRVADDR);
 
         producer.start();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             try {
                 Message msg = new Message(TOPIC, TAG, "OrderID188", "Hello world".getBytes(StandardCharsets.UTF_8));
                 SendResult sendResult = producer.send(msg);

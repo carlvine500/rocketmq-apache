@@ -27,14 +27,14 @@ import org.apache.rocketmq.common.message.MessageExt;
 
 public class PushConsumer {
     public static final String TOPIC = "TopicTest";
-    public static final String CONSUMER_GROUP = "CID_JODIE_1";
-    public static final String NAMESRV_ADDR = "127.0.0.1:9876";
+    public static final String CONSUMER_GROUP = "TopicTest";
+    public static final String NAMESRV_ADDR = "172.33.66.117:9878";
     public static void main(String[] args) throws InterruptedException, MQClientException {
 
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(CONSUMER_GROUP);
 
         // Uncomment the following line while debugging, namesrvAddr should be set to your local address
-//        consumer.setNamesrvAddr(NAMESRV_ADDR);
+        consumer.setNamesrvAddr(NAMESRV_ADDR);
 
         consumer.subscribe(TOPIC, "*");
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);

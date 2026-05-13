@@ -38,10 +38,10 @@ public class PullConsumer {
     public static void main(String[] args) throws MQClientException {
 
         DefaultMQPullConsumer consumer = new DefaultMQPullConsumer("please_rename_unique_group_name_5");
-        consumer.setNamesrvAddr("127.0.0.1:9876");
+        consumer.setNamesrvAddr("172.33.66.117:9876");
         Set<String> topics = new HashSet<>();
         //You would be better to register topics,It will use in rebalance when starting
-        topics.add("TopicTest");
+        topics.add("TopicTest%beta");
         consumer.setRegisterTopics(topics);
         consumer.start();
 

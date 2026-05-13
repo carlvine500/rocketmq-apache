@@ -1,5 +1,5 @@
 all: build
-image=registry.bizsaas.net/rocketmq:5.3.0-jdk17
+image=registry.bizsaas.net/rocketmq:5.3.0
 build:
 	cp ../target/*.tar.gz ./ ;\
     docker build -t $(image) .;\
